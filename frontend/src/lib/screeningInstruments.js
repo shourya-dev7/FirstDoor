@@ -116,6 +116,21 @@ export const CRISIS_SUPPORT = [
 
 const CRISIS_HEADLINE = "Support is available right now.";
 
+// A minor is not screened for a mental health condition without an adult in
+// the loop, so the emotional path halts before either instrument is
+// administered. The id — not the display label — is matched: the label is
+// user-facing copy, and rewording it must not be able to silently switch a
+// safety gate off.
+export const MINOR_AGE_BAND_ID = "under-18";
+
+// The gate below fails closed against THIS list rather than testing for the
+// minor id, so a missing, misspelled or unrecognised age band halts too. Any
+// age band added to AGE_OPTIONS and not added here therefore fails safe: it
+// halts rather than scores, which is the direction a drift should break in.
+const ADULT_AGE_BAND_IDS = ["18-39", "40-64", "65-plus"];
+
+const MINOR_SUPPORT_HEADLINE = "Please talk to an adult you trust.";
+
 // Driver rows sit in a two-column layout on the result card, so a long
 // free-text answer is trimmed for display. Mirrors the helper in
 // placeholderTriage.js; kept local so the two modules stay independent.
@@ -134,6 +149,19 @@ function crisisResult() {
     headline: CRISIS_HEADLINE,
     // Deliberately empty. Echoing back which item was answered how would put
     // someone's self-harm response on screen, and no score exists on this path.
+    drivers: [],
+    referrals: [],
+    roadmap: [],
+    crisis_support: CRISIS_SUPPORT,
+  };
+}
+
+// Mirrors crisisResult(): no score, no band, no referral and no drivers. The
+// screening was never administered, so there is nothing to echo back.
+function minorSupportResult() {
+  return {
+    risk_band: "minor_support",
+    headline: MINOR_SUPPORT_HEADLINE,
     drivers: [],
     referrals: [],
     roadmap: [],
@@ -193,9 +221,13 @@ const SCREENING_ROADMAP = [
  * @param {string} input.instrument  Key into INSTRUMENTS ("phq9" | "gad7").
  * @param {Record<string, number>} input.responses  Item id -> 0..3.
  * @param {string} [input.symptom]  Free-text description.
- * @param {string} [input.ageBandLabel]  Already-resolved age band label.
+ * @param {string} [input.ageBand]  AGE_OPTIONS id. Drives the minor gate; the
+ *   stable id is used rather than the label so rewording copy cannot disable it.
+ * @param {string} [input.ageBandLabel]  Already-resolved age band label. Display
+ *   only — never gated on.
  * @returns {{
- *   risk_band: "crisis" | "unscored" | "routine" | "soon" | "urgent",
+ *   risk_band: "crisis" | "minor_support" | "unscored" | "routine" | "soon"
+ *     | "urgent",
  *   headline: string,
  *   drivers: {question_id: string, answer: string}[],
  *   referrals: {specialty: string, rank: number, rationale: string}[],
@@ -203,7 +235,13 @@ const SCREENING_ROADMAP = [
  *   crisis_support?: {name: string, numbers: string[], detail: string}[],
  * }}
  */
-export function scoreScreening({ instrument, responses = {}, symptom, ageBandLabel }) {
+export function scoreScreening({
+  instrument,
+  responses = {},
+  symptom,
+  ageBand,
+  ageBandLabel,
+}) {
   const spec = INSTRUMENTS[instrument] ?? null;
 
   // ---------------------------------------------------------------------
@@ -213,16 +251,49 @@ export function scoreScreening({ instrument, responses = {}, symptom, ageBandLab
   //
   // It fails closed: an unknown instrument, a PHQ-9 whose self-harm item has
   // lost its isCrisisItem flag, or an unanswered crisis item all return the
-  // crisis result rather than falling through to scoring.
+  // crisis result rather than falling through to scoring. The unanswered case
+  // is checked below the minor gate — see the split note further down.
   // ---------------------------------------------------------------------
   if (!spec) return crisisResult();
 
   const crisisItem = spec.items.find((item) => item.isCrisisItem) ?? null;
   if (spec.expectsCrisisItem && !crisisItem) return crisisResult();
-  if (crisisItem && responses[crisisItem.id] !== 0) return crisisResult();
 
-  // No crisis response. Everything below is ordinary scoring, and it is only
-  // reachable because the gate above let it be.
+  // The gate is split in two around the minor gate below, because "answered
+  // with a non-zero value" and "not answered at all" must not be treated the
+  // same once minors stop being administered the items.
+  //
+  // An ACTUAL crisis response outranks everything, including the minor gate:
+  // a person at acute risk gets the crisis screen whatever their age.
+  const crisisAnswer = crisisItem ? responses[crisisItem.id] : undefined;
+  const crisisAnswered = crisisAnswer !== undefined && crisisAnswer !== null
+    && crisisAnswer !== "";
+  if (crisisItem && crisisAnswered && Number(crisisAnswer) !== 0) return crisisResult();
+
+  // ---------------------------------------------------------------------
+  // MINOR GATE. Runs second, so an acute-risk answer is never suppressed by
+  // it — a person in crisis gets the crisis screen whatever their age. Like
+  // the gate above it returns before any scoring exists, and it fails closed:
+  // only an explicitly recognised adult band is allowed through, so a missing
+  // or unknown age band halts rather than scores.
+  //
+  // The intake also stops before showing any items to a minor. This gate is
+  // the backstop for that, not a substitute: it is what makes a direct call
+  // to scoreScreening() safe.
+  // ---------------------------------------------------------------------
+  if (!ADULT_AGE_BAND_IDS.includes(ageBand)) return minorSupportResult();
+
+  // Second half of the crisis gate. A minor never reaches this line, which is
+  // the point: the intake shows them no items, so their crisis item is always
+  // unanswered, and without the split below they would be routed to the
+  // crisis screen purely for not having been asked. For an adult an
+  // unanswered or unparseable crisis item still fails closed to crisis.
+  if (crisisItem && (!crisisAnswered || Number.isNaN(Number(crisisAnswer)))) {
+    return crisisResult();
+  }
+
+  // No crisis response and an adult respondent. Everything below is ordinary
+  // scoring, and it is only reachable because both gates above let it be.
   const total = spec.items.reduce((sum, item) => sum + (responses[item.id] ?? 0), 0);
   const maxTotal = spec.items.length * (RESPONSE_SCALE.length - 1);
   const band = bandForTotal(total, spec.cutoffs);

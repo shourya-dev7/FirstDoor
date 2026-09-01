@@ -39,11 +39,14 @@ const BAND = {
   // A completed screening whose severity cutoffs have not been configured yet.
   // No band is invented for it.
   unscored: { label: "Not scored", fg: "#48605F", bg: "#EFEDE4", line: "#DAD4C4" },
+  // Listed for completeness. The minor-support result renders through the
+  // crisis layout below, which shows no band chip, so this is never read.
+  minor_support: { label: "Support", fg: "#1F6A7A", bg: "#E4F1F4", line: "#A9CDD6" },
 };
 
 // Bands that represent a screening actually carried through to a severity.
-// "unscored" and "crisis" are not in here: neither is an outcome of the
-// two-step flow, so neither gets the step counter in the header.
+// "unscored", "crisis" and "minor_support" are not in here: none is an
+// outcome of the two-step flow, so none gets the step counter in the header.
 const SCORED_BANDS = ["emergency", "urgent", "soon", "routine"];
 
 export default function Result() {
@@ -58,7 +61,11 @@ export default function Result() {
   // The crisis result carries no band, no score and no referral, so it is
   // checked before BAND is read and renders its own card below.
   const isCrisis = data?.risk_band === "crisis";
-  const band = data && !isCrisis ? BAND[data.risk_band] : null;
+  // A minor is never screened, so this result has nothing to score either. It
+  // reuses the crisis layout: a message, the helplines, and nothing else.
+  const isMinor = data?.risk_band === "minor_support";
+  const isHalted = isCrisis || isMinor;
+  const band = data && !isHalted ? BAND[data.risk_band] : null;
   const isEmergency = data?.risk_band === "emergency";
   const isScored = SCORED_BANDS.includes(data?.risk_band);
 
@@ -178,12 +185,13 @@ export default function Result() {
             </div>
           )}
 
-          {data && isCrisis && (
+          {data && isHalted && (
             <div className="rs-card">
               <h1 className="rs-crisis-head">{data.headline}</h1>
               <p className="rs-crisis-lead">
-                You do not have to work out what to do next on your own. These lines are
-                answered by trained people, at any hour, and the call is free.
+                {isMinor
+                  ? "A parent, guardian, school counsellor or your GP can help you work out what to do next — you do not have to raise it alone. If you would rather speak to someone outside that, these lines are free and answered at any hour."
+                  : "You do not have to work out what to do next on your own. These lines are answered by trained people, at any hour, and the call is free."}
               </p>
 
               {(data.crisis_support ?? []).map((service) => (
@@ -200,14 +208,16 @@ export default function Result() {
                 </div>
               ))}
 
-              <p className="rs-crisis-note">
-                If you are in immediate danger, call your local emergency number, or ask
-                someone nearby to stay with you.
-              </p>
+              {!isMinor && (
+                <p className="rs-crisis-note">
+                  If you are in immediate danger, call your local emergency number, or ask
+                  someone nearby to stay with you.
+                </p>
+              )}
             </div>
           )}
 
-          {data && !isCrisis && (
+          {data && !isHalted && (
           <div className="rs-card">
             <span
               className="rs-band"
@@ -280,7 +290,7 @@ export default function Result() {
           </div>
           )}
 
-          {data && !isCrisis && !fromIntake && (
+          {data && !isHalted && !fromIntake && (
             <p className="rs-foot">
               <button
                 className="rs-toggle"
