@@ -1,80 +1,132 @@
 /**
- * PHQ-9 AND GAD-7 — STRUCTURE ONLY. NO INSTRUMENT CONTENT IS AUTHORED HERE.
+ * PHQ-9 AND GAD-7 — OFFICIAL INSTRUMENT CONTENT.
  *
- * The item wording, the 0-3 response scale labels, the severity cutoffs and
- * the severity band names below are all PLACEHOLDERS. Every one of them is
- * official content belonging to the source instrument. Writing plausible
- * substitutes would produce a fake questionnaire presented to people as a
- * validated one, so none of them have been written here.
+ * The item wording, the 0-3 response scale labels, the shared prompt, the
+ * severity cutoffs and the severity band names below are the official content
+ * of the source instruments, reproduced verbatim. Both are public domain.
  *
- * BEFORE THIS SHIPS, someone must:
- *   1. Paste the official item wording into every *_ITEM_*_TEXT string.
- *   2. Paste the official 0-3 frequency wording into every SCALE_LABEL_*.
- *   3. Fill PHQ9_SEVERITY_CUTOFFS and GAD7_SEVERITY_CUTOFFS from the
- *      instrument's own scoring guidance. Do not guess the numbers.
+ * Do not paraphrase, shorten, re-order or "improve" any of these strings. The
+ * scores they produce are only meaningful for the exact wording that was
+ * validated. Editing an item silently invalidates the instrument while leaving
+ * the page looking finished, which is the failure this file is written to
+ * prevent. Attribution is rendered on screen — see INSTRUMENT_ATTRIBUTION.
  *
- * The routing question below is ours, not instrument content, and is written.
+ * The routing question and the risk_band mapping are ours, not instrument
+ * content, and are marked as such where they appear.
  *
- * The placeholder strings render verbatim on screen on purpose. A screening
- * page that is obviously unconfigured is safe; one that looks finished but
- * carries invented wording is not.
- *
- * Two properties must survive that replacement:
+ * Two properties must survive any future edit:
  *   1. FirstDoor does not name a disorder and never names a medication.
  *   2. The crisis gate runs first and nothing downstream can override it.
  */
 
-// TODO: official 0-3 frequency wording from the source instrument.
+// Official 0-3 frequency wording. Shared by both instruments.
 export const RESPONSE_SCALE = [
-  { value: 0, label: "SCALE_LABEL_0" },
-  { value: 1, label: "SCALE_LABEL_1" },
-  { value: 2, label: "SCALE_LABEL_2" },
-  { value: 3, label: "SCALE_LABEL_3" },
+  { value: 0, label: "Not at all" },
+  { value: 1, label: "Several days" },
+  { value: 2, label: "More than half the days" },
+  { value: 3, label: "Nearly every day" },
 ];
 
-// TODO: official PHQ-9 item wording.
+// Official prompt that both instruments are administered under. The two-week
+// window is part of the instrument: the scores mean nothing without it, so it
+// is rendered above the items rather than left implicit.
+export const SHARED_PROMPT =
+  "Over the last 2 weeks, how often have you been bothered by any of the " +
+  "following problems?";
+
+// Official PHQ-9 item wording.
 //
 // Item 9 asks about thoughts of self-harm. It is marked with isCrisisItem so
 // the gate in scoreScreening() finds it BY FLAG rather than by position — if
 // these items are ever reordered, the gate follows the flag and stays attached
 // to the right question. Moving the flag to the wrong item, or dropping it,
-// changes safety behaviour. Do not edit it while pasting in the wording.
+// changes safety behaviour. Do not edit it.
 export const PHQ9_ITEMS = [
-  { id: "phq9-1", text: "PHQ9_ITEM_1_TEXT" },
-  { id: "phq9-2", text: "PHQ9_ITEM_2_TEXT" },
-  { id: "phq9-3", text: "PHQ9_ITEM_3_TEXT" },
-  { id: "phq9-4", text: "PHQ9_ITEM_4_TEXT" },
-  { id: "phq9-5", text: "PHQ9_ITEM_5_TEXT" },
-  { id: "phq9-6", text: "PHQ9_ITEM_6_TEXT" },
-  { id: "phq9-7", text: "PHQ9_ITEM_7_TEXT" },
-  { id: "phq9-8", text: "PHQ9_ITEM_8_TEXT" },
-  { id: "phq9-9", text: "PHQ9_ITEM_9_TEXT", isCrisisItem: true },
+  { id: "phq9-1", text: "Little interest or pleasure in doing things" },
+  { id: "phq9-2", text: "Feeling down, depressed, or hopeless" },
+  { id: "phq9-3", text: "Trouble falling or staying asleep, or sleeping too much" },
+  { id: "phq9-4", text: "Feeling tired or having little energy" },
+  { id: "phq9-5", text: "Poor appetite or overeating" },
+  {
+    id: "phq9-6",
+    text:
+      "Feeling bad about yourself — or that you are a failure or have let " +
+      "yourself or your family down",
+  },
+  {
+    id: "phq9-7",
+    text:
+      "Trouble concentrating on things, such as reading the newspaper or " +
+      "watching television",
+  },
+  {
+    id: "phq9-8",
+    text:
+      "Moving or speaking so slowly that other people could have noticed. Or " +
+      "the opposite — being so fidgety or restless that you have been moving " +
+      "around a lot more than usual",
+  },
+  {
+    id: "phq9-9",
+    text:
+      "Thoughts that you would be better off dead, or of hurting yourself in " +
+      "some way",
+    isCrisisItem: true,
+  },
 ];
 
-// TODO: official GAD-7 item wording.
+// Official GAD-7 item wording.
 export const GAD7_ITEMS = [
-  { id: "gad7-1", text: "GAD7_ITEM_1_TEXT" },
-  { id: "gad7-2", text: "GAD7_ITEM_2_TEXT" },
-  { id: "gad7-3", text: "GAD7_ITEM_3_TEXT" },
-  { id: "gad7-4", text: "GAD7_ITEM_4_TEXT" },
-  { id: "gad7-5", text: "GAD7_ITEM_5_TEXT" },
-  { id: "gad7-6", text: "GAD7_ITEM_6_TEXT" },
-  { id: "gad7-7", text: "GAD7_ITEM_7_TEXT" },
+  { id: "gad7-1", text: "Feeling nervous, anxious, or on edge" },
+  { id: "gad7-2", text: "Not being able to stop or control worrying" },
+  { id: "gad7-3", text: "Worrying too much about different things" },
+  { id: "gad7-4", text: "Trouble relaxing" },
+  { id: "gad7-5", text: "Being so restless that it's hard to sit still" },
+  { id: "gad7-6", text: "Becoming easily annoyed or irritable" },
+  { id: "gad7-7", text: "Feeling afraid as if something awful might happen" },
 ];
 
 /**
- * TODO: fill from the source instrument's scoring guidance.
+ * Severity bands from each instrument's own scoring guidance.
  *
- * Expected shape once authored — an array ordered low to high:
- *   [{ min: <number>, max: <number>, label: "<official band name>",
- *      risk_band: "routine" | "soon" | "urgent" }, ...]
+ * `min`, `max` and `label` are official instrument content — the ranges and
+ * the band names are fixed by the source and are not ours to adjust.
  *
- * Left null until the real numbers and the real band names are pasted in.
- * While null, scoreScreening() reports the result as unscored rather than
- * inventing a band. Do not guess these.
+ * `risk_band` is NOT instrument content. Neither questionnaire says how
+ * urgently someone should be seen; that is FirstDoor's routing decision,
+ * mapping a severity onto the three urgency bands the result screen renders.
+ * It follows the usual convention that a score of 10 or more is the threshold
+ * for clinical attention, so:
+ *   minimal / mild        -> routine
+ *   moderate              -> soon
+ *   moderately severe     -> urgent
+ *   severe                -> urgent
+ * NEEDS CLINICAL SIGN-OFF before this is put in front of the public. Changing
+ * a risk_band here changes how urgently a real person is told to seek care.
+ * The band names and ranges beside it must not be changed at all.
  */
-export const PHQ9_SEVERITY_CUTOFFS = null;
-export const GAD7_SEVERITY_CUTOFFS = null;
+export const PHQ9_SEVERITY_CUTOFFS = [
+  { min: 0, max: 4, label: "Minimal", risk_band: "routine" },
+  { min: 5, max: 9, label: "Mild", risk_band: "routine" },
+  { min: 10, max: 14, label: "Moderate", risk_band: "soon" },
+  { min: 15, max: 19, label: "Moderately severe", risk_band: "urgent" },
+  { min: 20, max: 27, label: "Severe", risk_band: "urgent" },
+];
+
+export const GAD7_SEVERITY_CUTOFFS = [
+  { min: 0, max: 4, label: "Minimal", risk_band: "routine" },
+  { min: 5, max: 9, label: "Mild", risk_band: "routine" },
+  { min: 10, max: 14, label: "Moderate", risk_band: "soon" },
+  { min: 15, max: 21, label: "Severe", risk_band: "urgent" },
+];
+
+// Rendered under the questionnaire. Both instruments are public domain, but
+// the attribution is still shown: it tells a reader what they were given and
+// who validated it. Do not drop it.
+export const INSTRUMENT_ATTRIBUTION =
+  "PHQ-9 and GAD-7 developed by Drs. Robert L. Spitzer, Janet B.W. Williams, " +
+  "Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. " +
+  "Public domain — no permission required to reproduce.";
 
 export const INSTRUMENTS = {
   phq9: {

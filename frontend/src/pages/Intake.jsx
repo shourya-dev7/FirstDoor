@@ -11,9 +11,11 @@ import {
 import {
   INSTRUMENTS,
   INSTRUMENT_ROUTING_OPTIONS,
+  INSTRUMENT_ATTRIBUTION,
   INSTRUMENT_ROUTING_QUESTION,
   MINOR_AGE_BAND_ID,
   RESPONSE_SCALE,
+  SHARED_PROMPT,
   scoreScreening,
 } from "../lib/screeningInstruments";
 
@@ -221,6 +223,12 @@ export default function Intake() {
                     gap: 8px; margin-left: 36px; }
         .in-scale .in-opt { padding: 11px 13px; font-size: 14px; }
         .in-items { margin: 16px 0 0 33px; display: grid; gap: 18px; }
+        .in-prompt { font-size: 15px; line-height: 1.55; color: #123038; font-weight: 500;
+                     margin: 0 0 4px 33px; padding-left: 13px;
+                     border-left: 2px solid #B6AE99; }
+        .in-attrib { font-size: 12px; line-height: 1.55; color: #8A928F;
+                     margin: 22px 0 0 33px; padding-top: 14px;
+                     border-top: 1px solid #E6E1D3; }
 
         .in-send { margin-top: 30px; padding-top: 26px; border-top: 1px solid #DAD4C4;
                    display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
@@ -239,7 +247,8 @@ export default function Intake() {
           .in-card { padding: 24px; }
           .in-opts { grid-template-columns: 1fr; }
           .in-scale { grid-template-columns: 1fr; margin-left: 0; }
-          .in-help, .in-body, .in-flag-list, .in-items, .in-notice { margin-left: 0; }
+          .in-help, .in-body, .in-flag-list, .in-items, .in-notice,
+          .in-prompt, .in-attrib { margin-left: 0; }
           .in-flags { padding: 20px 17px; }
           .in-send { gap: 12px; }
           .in-btn { width: 100%; }
@@ -422,14 +431,7 @@ export default function Intake() {
                       {spec.name} screening
                     </legend>
 
-                    <div className="in-notice">
-                      <p className="in-notice-label">Not yet configured</p>
-                      <p>
-                        The question wording and response labels below are placeholders. The
-                        official {spec.name} wording has to be pasted in from the source
-                        instrument before this is shown to anyone.
-                      </p>
-                    </div>
+                    <p className="in-prompt">{SHARED_PROMPT}</p>
 
                     <div className="in-items">
                       {spec.items.map((item, index) => (
@@ -457,6 +459,8 @@ export default function Intake() {
                         </fieldset>
                       ))}
                     </div>
+
+                    <p className="in-attrib">{INSTRUMENT_ATTRIBUTION}</p>
                   </fieldset>
                 )}
               </>
