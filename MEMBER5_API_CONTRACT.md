@@ -274,3 +274,37 @@ Laboratory Module   Imaging Module
 - [x] Hospital dataset
 - [x] API integration contract
 - [x] GitHub backup
+
+---
+
+# 9. Triage Contract Update — Minor Support
+
+The `/triage` backend must accept the following `risk_band` values:
+
+```text
+crisis
+emergency
+urgent
+soon
+routine
+minor_support
+```
+
+## Minor Support Rule
+
+For users under 18 on the emotional or mental-health pathway:
+
+- The flow must stop before psychological screening.
+- No psychological score should be generated.
+- No referral should be generated.
+- The response must use:
+
+```json
+{
+  "risk_band": "minor_support"
+}
+```
+
+Support contacts should be provided according to the frontend/backend contract.
+
+This rule must be handled before normal psychological screening or scoring.
