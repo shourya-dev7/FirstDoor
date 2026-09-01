@@ -275,36 +275,128 @@ Laboratory Module   Imaging Module
 - [x] API integration contract
 - [x] GitHub backup
 
----
-
 # 9. Triage Contract Update — Minor Support
 
-The `/triage` backend must accept the following `risk_band` values:
+The `/triage` backend must support the following `risk_band` values:
 
 ```text
-crisis
-emergency
-urgent
-soon
-routine
-minor_support
+crisis | minor_support | emergency | urgent | soon | routine
 ```
 
-## Minor Support Rule
+## Emotional Path Gate Ordering
 
-For users under 18 on the emotional or mental-health pathway:
+The emotional/mental-health pathway must apply these gates before any psychological screening or scoring.
 
-- The flow must stop before psychological screening.
-- No psychological score should be generated.
-- No referral should be generated.
-- The response must use:
+### Gate 1 — Crisis Check
+
+The crisis check runs first.
+
+If a self-harm or crisis response is present, return:
+
+```text
+risk_band = crisis
+```
+
+This must happen even if the user is under 18.
+
+Immediate crisis risk takes priority over the minor safeguarding pathway.
+
+The crisis check must occur before scoring.
+
+### Gate 2 — Minor Check
+
+The minor check runs second.
+
+If the user is:
+
+- Under 18, or
+- Has a missing age, or
+- Has an unrecognised age band
+
+the backend must fail closed and return:
+
+```text
+risk_band = minor_support
+```
+
+The flow must stop before any psychological instrument is administered.
+
+No psychological screening score should be generated.
+
+No referral should be generated.
+
+## Exact Minor Support Response
 
 ```json
 {
-  "risk_band": "minor_support"
+  "risk_band": "minor_support",
+  "headline": "Please talk to an adult you trust.",
+  "drivers": [],
+  "referrals": [],
+  "roadmap": [],
+  "crisis_support": {
+    "name": "Tele-MANAS",
+    "numbers": ["14416", "1800-891-4416"],
+    "note": "24/7, free, available in 20 languages"
+  }
 }
 ```
 
-Support contacts should be provided according to the frontend/backend contract.
+## Minor Support Rules
 
-This rule must be handled before normal psychological screening or scoring.
+The following fields must always be present and must be empty arrays:
+
+```json
+"drivers": []
+"referrals": []
+"roadmap": []
+```
+
+They must never be:
+
+- `null`
+- missing
+- objects
+- strings
+
+The frontend maps over these fields.
+
+The existing `crisis_support` field is reused for `minor_support`.
+
+No new support field should be created.
+
+The response must not contain:
+
+- a score
+- a band number
+- a severity value
+- screening results
+
+No screening answers exist because the minor gate runs before any psychological instrument is administered.
+
+## Safety Ordering Summary
+
+```text
+Emotional Path
+      |
+      v
+Crisis Check
+      |
+      |-- Crisis detected --> crisis response
+      |
+      v
+Minor Check
+      |
+      |-- Under 18 / missing age / invalid age --> minor_support
+      |
+      v
+Psychological Instrument
+      |
+      v
+Scoring
+      |
+      v
+Referral / Roadmap
+```
+
+The system fails closed for unknown or missing age information.
