@@ -18,7 +18,9 @@ from .llm_service import generate_medical_explanation
 from .services.psychological import (
     run_psychological_screening,
 )
-
+from .services.labs import analyze_labs
+from .services.imaging import analyze_imaging
+from .services.hospitals import get_hospital_referral
 
 # =========================================================
 # PATHS / DATASET
@@ -231,6 +233,30 @@ class TriageRequest(BaseModel):
         default=None
     )
 
+# =========================================================
+# MEMBER 5 REQUEST MODELS
+# =========================================================
+
+class LabItem(BaseModel):
+    test: str
+    value: Any
+
+
+class LabsRequest(BaseModel):
+    labs: List[LabItem]
+
+
+class ImagingRequest(BaseModel):
+    modality: Optional[str] = ""
+    body_part: Optional[str] = ""
+    findings: Optional[str] = ""
+    urgency: Optional[str] = ""
+
+
+class HospitalReferralRequest(BaseModel):
+    specialty: str
+    city: Optional[str] = "Chennai"
+    emergency: Optional[bool] = False
 
 # =========================================================
 # TRIAGE RESPONSE HELPERS
@@ -629,6 +655,52 @@ def triage(request: TriageRequest):
         "crisis_support": None,
     }
 
+# =========================================================
+# MEMBER 5 — LABORATORY ANALYSIS
+# =========================================================
+
+@app.post("/labs/analyze")
+def laboratory_analysis(request: LabsRequest):
+    labs = [
+        {
+            "test": lab.test,
+            "value": lab.value,
+        }
+        for lab in request.labs
+    ]
+
+    return analyze_labs(labs)
+
+
+# =========================================================
+# MEMBER 5 — IMAGING ANALYSIS
+# =========================================================
+
+@app.post("/imaging/analyze")
+def imaging_analysis(request: ImagingRequest):
+
+    data = {
+        "modality": request.modality,
+        "body_part": request.body_part,
+        "findings": request.findings,
+        "urgency": request.urgency,
+    }
+
+    return analyze_imaging(data)
+
+
+# =========================================================
+# MEMBER 5 — HOSPITAL REFERRAL
+# =========================================================
+
+@app.post("/hospitals/referral")
+def hospital_referral(request: HospitalReferralRequest):
+
+    return get_hospital_referral(
+        specialty=request.specialty,
+        city=request.city or "Chennai",
+        emergency=request.emergency or False,
+    )
 
 # =========================================================
 # HEALTH CHECK
