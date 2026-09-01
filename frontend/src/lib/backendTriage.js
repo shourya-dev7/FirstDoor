@@ -11,12 +11,12 @@
  */
 import { AGE_OPTIONS } from "./placeholderTriage";
 
-const BACKEND_URL = "http://127.0.0.1:8000/api/assess";
+const BACKEND_URL = "https://firstdoor.onrender.com/api/assess";
 
 // A connection to a port nothing is listening on usually fails fast, but a
 // firewall can leave it hanging instead. Without a deadline the submit button
 // would stay disabled indefinitely on the deployed site.
-const BACKEND_TIMEOUT_MS = 6000;
+const BACKEND_TIMEOUT_MS = 20000;
 
 // Severity is collected as an option id ("mild"), and the backend's schema
 // requires an integer from 1 to 10. These are spread across that range rather
