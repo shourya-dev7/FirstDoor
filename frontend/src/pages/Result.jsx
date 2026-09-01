@@ -41,6 +41,11 @@ const BAND = {
   unscored: { label: "Not scored", fg: "#48605F", bg: "#EFEDE4", line: "#DAD4C4" },
 };
 
+// Bands that represent a screening actually carried through to a severity.
+// "unscored" and "crisis" are not in here: neither is an outcome of the
+// two-step flow, so neither gets the step counter in the header.
+const SCORED_BANDS = ["emergency", "urgent", "soon", "routine"];
+
 export default function Result() {
   const location = useLocation();
   // A real result only ever arrives from Intake via router state. Opening
@@ -55,6 +60,7 @@ export default function Result() {
   const isCrisis = data?.risk_band === "crisis";
   const band = data && !isCrisis ? BAND[data.risk_band] : null;
   const isEmergency = data?.risk_band === "emergency";
+  const isScored = SCORED_BANDS.includes(data?.risk_band);
 
   return (
     <>
@@ -151,7 +157,7 @@ export default function Result() {
       <div className="rs">
         <header className="rs-bar">
           <Link className="rs-mark" to="/">First<span>Door</span></Link>
-          {data && <div className="rs-step">Step 2 of 2 · Result</div>}
+          {isScored && <div className="rs-step">Step 2 of 2 · Result</div>}
         </header>
 
         <div className="rs-wrap">
