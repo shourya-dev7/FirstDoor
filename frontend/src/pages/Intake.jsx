@@ -12,6 +12,7 @@ import {
   INSTRUMENTS,
   INSTRUMENT_ROUTING_OPTIONS,
   INSTRUMENT_ROUTING_QUESTION,
+  MINOR_AGE_BAND_ID,
   RESPONSE_SCALE,
   scoreScreening,
 } from "../lib/screeningInstruments";
@@ -46,6 +47,11 @@ export default function Intake() {
   const isEmotional = track === "emotional";
   const spec = isEmotional && instrument ? INSTRUMENTS[instrument] : null;
 
+  // A minor is not screened without an adult in the loop, so the items are
+  // never rendered and the flow halts here. scoreScreening() gates on this
+  // independently — this only stops the questions being put on screen.
+  const isMinor = isEmotional && ageBand === MINOR_AGE_BAND_ID;
+
   // "None of these apply" and the five warning signs are mutually exclusive.
   function toggleFlag(id) {
     setNoneChecked(false);
@@ -79,6 +85,10 @@ export default function Intake() {
       ageBand !== "",
       redFlags.length > 0 || noneChecked,
     ];
+  } else if (isMinor) {
+    // No items are shown, so none are required — without this the submit
+    // button would stay disabled and the halt screen unreachable.
+    answered = [instrument !== "", symptom.trim() !== "", ageBand !== ""];
   } else if (isEmotional) {
     answered = [
       instrument !== "",
@@ -101,6 +111,7 @@ export default function Intake() {
           instrument,
           responses,
           symptom,
+          ageBand,
           ageBandLabel: AGE_OPTIONS.find((o) => o.id === ageBand)?.label ?? "",
         });
 
@@ -387,7 +398,24 @@ export default function Intake() {
                   </div>
                 </fieldset>
 
-                {spec && (
+                {isMinor && (
+                  <fieldset className="in-q">
+                    <legend className="in-legend">
+                      <span className="in-num">5</span>
+                      No screening questions
+                    </legend>
+                    <div className="in-notice">
+                      <p className="in-notice-label">Not screened here</p>
+                      <p>
+                        A mental health screening should have an adult involved, so
+                        FirstDoor does not put these questions to anyone under 18.
+                        Continue to see who you can talk to.
+                      </p>
+                    </div>
+                  </fieldset>
+                )}
+
+                {spec && !isMinor && (
                   <fieldset className="in-q">
                     <legend className="in-legend">
                       <span className="in-num">5</span>
