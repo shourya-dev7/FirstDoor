@@ -1,0 +1,27 @@
+version: "1.0"
+
+crisis:
+
+  self_harm:
+    enabled: true
+
+    # IMPORTANT:
+    # The application must locate the crisis question
+    # by this flag rather than by array/index position.
+    question_flag: "crisis"
+
+    trigger_values:
+      - "yes"
+      - "nearly every day"
+      - "more than half the days"
+      - "several days"
+
+    headline: "You may need immediate crisis support."
+
+    support:
+      name: "India emergency and crisis support"
+      numbers:
+        - "112"
+        - "Tele-MANAS: 14416"
+
+    fail_closed: true

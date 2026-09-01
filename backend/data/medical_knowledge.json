@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "title": "FirstDoor Medical Knowledge Base",
+    "version": "2.0",
+    "purpose": "Educational prototype knowledge base for symptom-based early risk assessment.",
+    "disclaimer": "This information is for educational and prototype purposes only. It is not a medical diagnosis or a substitute for professional medical advice.",
+    "sources": [
+      {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/"
+      },
+      {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/"
+      },
+      {
+        "name": "WHO",
+        "organization": "World Health Organization",
+        "url": "https://www.who.int/"
+      },
+      {
+        "name": "FDA",
+        "organization": "U.S. Food and Drug Administration",
+        "url": "https://www.fda.gov/"
+      }
+    ]
+  },
+
+  "conditions": [
+    {
+      "name": "Cardiovascular disease",
+      "symptoms": [
+        "chest pain",
+        "palpitations",
+        "dizziness",
+        "shortness of breath"
+      ],
+      "specialty": "Cardiology",
+      "common_tests": [
+        "ECG",
+        "blood pressure measurement",
+        "blood tests"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/heartdiseases.html"
+      }
+    },
+
+    {
+      "name": "Respiratory disease",
+      "symptoms": [
+        "difficulty breathing",
+        "shortness of breath"
+      ],
+      "specialty": "Pulmonology",
+      "common_tests": [
+        "pulse oximetry",
+        "chest imaging",
+        "pulmonary function testing"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/lungdiseases.html"
+      }
+    },
+
+    {
+      "name": "Neurological disorder",
+      "symptoms": [
+        "headache",
+        "dizziness",
+        "sudden weakness",
+        "slurred speech",
+        "seizure",
+        "severe headache"
+      ],
+      "specialty": "Neurology",
+      "common_tests": [
+        "neurological examination",
+        "brain imaging",
+        "laboratory investigations"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/neurologicdiseases.html"
+      }
+    },
+
+    {
+      "name": "Gastrointestinal disorder",
+      "symptoms": [
+        "stomach pain",
+        "abdominal pain",
+        "vomiting"
+      ],
+      "specialty": "Gastroenterology",
+      "common_tests": [
+        "blood tests",
+        "abdominal imaging",
+        "endoscopic evaluation"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/digestivediseases.html"
+      }
+    },
+
+    {
+      "name": "Diabetes mellitus",
+      "symptoms": [
+        "increased thirst",
+        "frequent urination",
+        "fatigue",
+        "blurred vision"
+      ],
+      "specialty": "Endocrinology",
+      "common_tests": [
+        "blood glucose",
+        "HbA1c",
+        "urine testing"
+      ],
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/diabetes/"
+      }
+    },
+
+    {
+      "name": "Asthma",
+      "symptoms": [
+        "difficulty breathing",
+        "shortness of breath",
+        "wheezing",
+        "cough"
+      ],
+      "specialty": "Pulmonology",
+      "common_tests": [
+        "pulmonary function testing",
+        "spirometry",
+        "pulse oximetry"
+      ],
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/asthma/"
+      }
+    },
+
+    {
+      "name": "Migraine",
+      "symptoms": [
+        "headache",
+        "nausea",
+        "vomiting",
+        "sensitivity to light"
+      ],
+      "specialty": "Neurology",
+      "common_tests": [
+        "neurological examination"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/migraine.html"
+      }
+    },
+
+    {
+      "name": "Hypertension",
+      "symptoms": [
+        "headache",
+        "dizziness",
+        "shortness of breath"
+      ],
+      "specialty": "Cardiology",
+      "common_tests": [
+        "blood pressure measurement",
+        "blood tests",
+        "ECG"
+      ],
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/high-blood-pressure/"
+      }
+    }
+  ],
+
+  "treatments": [
+    {
+      "condition": "Cardiovascular disease",
+      "treatments": [
+        "Lifestyle modification",
+        "Blood pressure management",
+        "Cholesterol management"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/heartdiseases.html"
+      }
+    },
+
+    {
+      "condition": "Respiratory disease",
+      "treatments": [
+        "Respiratory support",
+        "Trigger avoidance",
+        "Condition-specific medication"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/lungdiseases.html"
+      }
+    },
+
+    {
+      "condition": "Neurological disorder",
+      "treatments": [
+        "Neurological evaluation",
+        "Condition-specific medication",
+        "Supportive care"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/neurologicdiseases.html"
+      }
+    },
+
+    {
+      "condition": "Gastrointestinal disorder",
+      "treatments": [
+        "Dietary modification",
+        "Hydration",
+        "Condition-specific medication"
+      ],
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/digestivediseases.html"
+      }
+    }
+  ],
+
+  "laboratory_tests": [
+    {
+      "name": "Blood glucose",
+      "category": "Metabolic",
+      "used_for": [
+        "Diabetes mellitus"
+      ],
+      "purpose": "Measures the amount of glucose in the blood.",
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/diabetes/"
+      }
+    },
+
+    {
+      "name": "HbA1c",
+      "category": "Metabolic",
+      "used_for": [
+        "Diabetes mellitus"
+      ],
+      "purpose": "Provides an estimate of average blood glucose over a period of time.",
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/diabetes/"
+      }
+    },
+
+    {
+      "name": "ECG",
+      "category": "Cardiac",
+      "used_for": [
+        "Cardiovascular disease",
+        "Hypertension"
+      ],
+      "purpose": "Records the electrical activity of the heart.",
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/"
+      }
+    },
+
+    {
+      "name": "Blood pressure measurement",
+      "category": "Cardiovascular",
+      "used_for": [
+        "Cardiovascular disease",
+        "Hypertension"
+      ],
+      "purpose": "Measures blood pressure.",
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/high-blood-pressure/"
+      }
+    },
+
+    {
+      "name": "Pulse oximetry",
+      "category": "Respiratory",
+      "used_for": [
+        "Respiratory disease",
+        "Asthma"
+      ],
+      "purpose": "Estimates oxygen saturation in the blood.",
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/"
+      }
+    },
+
+    {
+      "name": "Spirometry",
+      "category": "Respiratory",
+      "used_for": [
+        "Asthma"
+      ],
+      "purpose": "Measures aspects of lung function.",
+      "source": {
+        "name": "CDC",
+        "organization": "Centers for Disease Control and Prevention",
+        "url": "https://www.cdc.gov/asthma/"
+      }
+    },
+
+    {
+      "name": "Brain imaging",
+      "category": "Neurological",
+      "used_for": [
+        "Neurological disorder"
+      ],
+      "purpose": "Provides imaging information about the brain.",
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/neurologicdiseases.html"
+      }
+    },
+
+    {
+      "name": "Abdominal imaging",
+      "category": "Gastrointestinal",
+      "used_for": [
+        "Gastrointestinal disorder"
+      ],
+      "purpose": "Provides imaging information about abdominal structures.",
+      "source": {
+        "name": "MedlinePlus",
+        "organization": "U.S. National Library of Medicine",
+        "url": "https://medlineplus.gov/digestivediseases.html"
+      }
+    }
+  ]
+}

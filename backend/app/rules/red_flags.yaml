@@ -1,0 +1,100 @@
+version: "1.0"
+
+red_flags:
+
+  chest_pain:
+    keywords:
+      - chest pain
+      - chest pressure
+      - chest tightness
+      - chest discomfort
+    emergency: true
+    headline: "Chest symptoms may require immediate medical attention."
+    rationale: "Chest pain, pressure, tightness, or discomfort can indicate a potentially serious condition."
+
+  severe_breathlessness:
+    keywords:
+      - severe shortness of breath
+      - severe breathlessness
+      - cannot breathe
+      - difficulty breathing
+      - struggling to breathe
+      - unable to breathe
+    emergency: true
+    headline: "Severe breathing difficulty requires immediate medical attention."
+    rationale: "Severe or rapidly worsening breathing difficulty can be an emergency."
+
+  loss_of_consciousness:
+    keywords:
+      - loss of consciousness
+      - unconscious
+      - passed out
+      - fainted
+      - fainting
+    emergency: true
+    headline: "Loss of consciousness requires urgent medical evaluation."
+    rationale: "Unexplained loss of consciousness can have serious causes."
+
+  severe_bleeding:
+    keywords:
+      - severe bleeding
+      - heavy bleeding
+      - bleeding heavily
+      - uncontrollable bleeding
+    emergency: true
+    headline: "Severe bleeding requires immediate medical attention."
+    rationale: "Heavy or uncontrolled bleeding can become life-threatening."
+
+  stroke_warning:
+    keywords:
+      - sudden weakness
+      - sudden numbness
+      - facial drooping
+      - difficulty speaking
+      - slurred speech
+      - sudden confusion
+      - sudden vision loss
+    emergency: true
+    headline: "Sudden neurological symptoms require immediate medical attention."
+    rationale: "Sudden weakness, speech difficulty, facial drooping, or similar symptoms may indicate a neurological emergency."
+
+  seizure:
+    keywords:
+      - seizure
+      - convulsion
+      - convulsions
+    emergency: true
+    headline: "A seizure requires urgent medical evaluation."
+    rationale: "A seizure, particularly a first or prolonged seizure, requires prompt medical assessment."
+
+  severe_allergic_reaction:
+    keywords:
+      - severe allergic reaction
+      - anaphylaxis
+      - swelling of throat
+      - swelling of tongue
+      - difficulty breathing after allergy
+    emergency: true
+    headline: "Possible severe allergic reaction requires immediate medical attention."
+    rationale: "Airway swelling or breathing difficulty associated with an allergic reaction can rapidly become life-threatening."
+
+  severe_abdominal_pain:
+    keywords:
+      - severe abdominal pain
+      - severe stomach pain
+      - unbearable abdominal pain
+      - unbearable stomach pain
+    emergency: true
+    headline: "Severe abdominal pain requires urgent medical evaluation."
+    rationale: "Severe or rapidly worsening abdominal pain can have serious causes."
+
+  suicidal_intent:
+    keywords:
+      - want to kill myself
+      - going to kill myself
+      - plan to kill myself
+      - suicide plan
+      - intend to die
+    emergency: true
+    headline: "Immediate crisis support is required."
+    rationale: "Expressions of imminent self-harm or suicidal intent require immediate crisis escalation."
