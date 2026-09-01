@@ -340,7 +340,7 @@ No referral should be generated.
         "numbers": ["14416", "1800-891-4416"],
         "detail": "24/7, free, available in 20 languages"
     }
-  ]
+   ]
 }
 ```
 
