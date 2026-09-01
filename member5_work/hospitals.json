@@ -1,0 +1,36 @@
+[
+  {
+    "id": "hospital_001",
+    "name": "City General Hospital",
+    "city": "Chennai",
+    "specialties": [
+      "General Medicine",
+      "Cardiology",
+      "Neurology",
+      "Emergency Medicine"
+    ],
+    "emergency_available": true
+  },
+  {
+    "id": "hospital_002",
+    "name": "Care Multispecialty Hospital",
+    "city": "Chennai",
+    "specialties": [
+      "General Medicine",
+      "Psychiatry",
+      "Endocrinology",
+      "Dermatology"
+    ],
+    "emergency_available": true
+  },
+  {
+    "id": "hospital_003",
+    "name": "Community Health Centre",
+    "city": "Chennai",
+    "specialties": [
+      "General Medicine",
+      "Mental Health"
+    ],
+    "emergency_available": false
+  }
+]
