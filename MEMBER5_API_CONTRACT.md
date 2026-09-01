@@ -334,11 +334,13 @@ No referral should be generated.
   "drivers": [],
   "referrals": [],
   "roadmap": [],
-  "crisis_support": {
-    "name": "Tele-MANAS",
-    "numbers": ["14416", "1800-891-4416"],
-    "note": "24/7, free, available in 20 languages"
-  }
+  "crisis_support": [
+    {
+        "name": "Tele-MANAS",
+        "numbers": ["14416", "1800-891-4416"],
+        "detail": "24/7, free, available in 20 languages"
+    }
+  ]
 }
 ```
 
