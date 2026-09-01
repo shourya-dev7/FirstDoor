@@ -330,6 +330,12 @@ def triage(request: TriageRequest):
     answers = request.answers or {}
     instrument = request.instrument
 
+    print("====================================")
+    print("TRIAGE REQUEST RECEIVED")
+    print("Instrument:", instrument)
+    print("Answers:", answers)
+    print("====================================")
+
     # -----------------------------------------------------
     # NORMALIZE INSTRUMENT
     # -----------------------------------------------------
