@@ -1,0 +1,115 @@
+[
+  {
+    "id": "source_who_report",
+    "name": "WHO Medical Report",
+    "organization": "World Health Organization",
+    "type": "clinical_guideline",
+    "access_method": "pdf_or_web",
+    "url": "https://iris.who.int/server/api/core/bitstreams/f750f24d-c0c2-425c-85fd-ec310d2ce994/content",
+    "priority": "high",
+    "status": "collected",
+    "used_for": [
+      "clinical evidence",
+      "medical guidelines",
+      "health recommendations",
+      "knowledge base evidence"
+    ]
+  },
+  {
+    "id": "source_mimic_ed_triage",
+    "name": "MIMIC-IV-ED Demo - Triage",
+    "organization": "PhysioNet / MIT Laboratory for Computational Physiology",
+    "type": "clinical_dataset",
+    "access_method": "dataset",
+    "url": "https://physionet.org/content/mimic-iv-ed-demo/2.2/ed/triage.csv.gz",
+    "priority": "high",
+    "status": "collected",
+    "used_for": [
+      "triage research",
+      "symptom analysis",
+      "emergency department data",
+      "risk model development"
+    ]
+  },
+  {
+    "id": "source_mimic_ed_vitals",
+    "name": "MIMIC-IV-ED Demo - Vital Signs",
+    "organization": "PhysioNet / MIT Laboratory for Computational Physiology",
+    "type": "clinical_dataset",
+    "access_method": "dataset",
+    "url": "https://physionet.org/content/mimic-iv-ed-demo/2.2/ed/vitalsign.csv.gz",
+    "priority": "high",
+    "status": "collected",
+    "used_for": [
+      "vital sign analysis",
+      "triage research",
+      "risk factor analysis",
+      "clinical feature engineering"
+    ]
+  },
+  {
+    "id": "source_uci_heart_disease",
+    "name": "UCI Heart Disease Dataset",
+    "organization": "UCI Machine Learning Repository",
+    "type": "public_dataset",
+    "access_method": "dataset",
+    "url": "https://uci-ics-mlr-prod.aws.uci.edu/dataset/45/heart%2Bdisease",
+    "priority": "high",
+    "status": "collected",
+    "used_for": [
+      "heart disease research",
+      "classification",
+      "risk factor analysis",
+      "machine learning experimentation"
+    ]
+  },
+  {
+    "id": "source_dhs_report",
+    "name": "DHS Program Report",
+    "organization": "DHS Program",
+    "type": "population_health_report",
+    "access_method": "pdf",
+    "url": "https://dhsprogram.com/pubs/pdf/FR375/FR375.pdf",
+    "priority": "medium",
+    "status": "collected",
+    "used_for": [
+      "population health",
+      "demographic factors",
+      "health statistics",
+      "epidemiological context"
+    ]
+  },
+  {
+    "id": "source_ncbi_books",
+    "name": "NCBI Bookshelf",
+    "organization": "National Center for Biotechnology Information",
+    "type": "medical_reference",
+    "access_method": "web",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK25500/",
+    "priority": "high",
+    "status": "collected",
+    "used_for": [
+      "medical reference information",
+      "disease information",
+      "clinical concepts",
+      "knowledge base enrichment"
+    ]
+  },
+  {
+    "id": "source_pubmed_api",
+    "name": "PubMed E-utilities API",
+    "organization": "National Library of Medicine / NCBI",
+    "type": "research_database",
+    "access_method": "api",
+    "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/",
+    "priority": "high",
+    "status": "planned",
+    "used_for": [
+      "research papers",
+      "biomedical literature",
+      "clinical evidence",
+      "systematic evidence retrieval",
+      "RAG knowledge collection"
+    ]
+  }
+]

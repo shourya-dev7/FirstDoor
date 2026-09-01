@@ -1,19 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
-from typing import Any, Dict, List, Optional
-import json
-from pathlib import Path
+from typing import List
 
 from .knowledge_base import (
     KNOWLEDGE_BASE,
     MEDICAL_HISTORY,
     SPECIALTY_PRIORITY,
+    CONDITIONS_DATA,
+    TREATMENTS_DATA,
+    LABORATORY_TESTS_DATA,
     get_symptom_information,
     get_history_information,
 )
 
 from .llm_service import generate_medical_explanation
+<<<<<<< ours
 
 from .services.psychological import (
     run_psychological_screening,
@@ -57,6 +59,9 @@ if not isinstance(TREATMENTS_DATA, list):
 
 if not isinstance(LABORATORY_TESTS_DATA, list):
     LABORATORY_TESTS_DATA = []
+=======
+from ..rag.retrieve import retrieve
+>>>>>>> theirs
 
 
 # =========================================================
@@ -66,8 +71,8 @@ if not isinstance(LABORATORY_TESTS_DATA, list):
 app = FastAPI(
     title="FirstDoor API",
     description=(
-        "FirstDoor clinical decision-support prototype "
-        "for early health risk assessment."
+        "FirstDoor prototype API for symptom-based "
+        "early health risk assessment."
     ),
     version="1.0.0",
 )
@@ -86,9 +91,6 @@ app.add_middleware(
         "http://127.0.0.1:5176",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-
-        # FirstDoor live frontend
-        "https://first-door-gamma.vercel.app",
     ],
     allow_credentials=False,
     allow_methods=["*"],
@@ -97,40 +99,7 @@ app.add_middleware(
 
 
 # =========================================================
-# HELPER FUNCTIONS
-# =========================================================
-
-def clean_list(value):
-    """
-    Safely convert a value into a clean list of strings.
-    """
-
-    if not isinstance(value, list):
-        return []
-
-    return [
-        str(item).strip()
-        for item in value
-        if str(item).strip()
-    ]
-
-
-def unique_list(items):
-    """
-    Remove duplicates while preserving order.
-    """
-
-    result = []
-
-    for item in items:
-        if item not in result:
-            result.append(item)
-
-    return result
-
-
-# =========================================================
-# PATIENT ASSESSMENT MODEL
+# PATIENT INPUT
 # =========================================================
 
 class PatientAssessment(BaseModel):
@@ -167,6 +136,18 @@ class PatientAssessment(BaseModel):
         description="Relevant medical history",
     )
 
+    # -----------------------------------------------------
+    # USER-SELECTED RED FLAGS
+    # -----------------------------------------------------
+
+    red_flags: List[str] = Field(
+        default_factory=list,
+        description="Warning signs selected by the patient",
+    )
+
+    # -----------------------------------------------------
+    # VALIDATE SYMPTOMS
+    # -----------------------------------------------------
 
     @field_validator("symptoms")
     @classmethod
@@ -185,6 +166,9 @@ class PatientAssessment(BaseModel):
 
         return list(dict.fromkeys(cleaned))
 
+    # -----------------------------------------------------
+    # VALIDATE MEDICAL HISTORY
+    # -----------------------------------------------------
 
     @field_validator("medical_history")
     @classmethod
@@ -198,6 +182,25 @@ class PatientAssessment(BaseModel):
 
         return list(dict.fromkeys(cleaned))
 
+    # -----------------------------------------------------
+    # VALIDATE RED FLAGS
+    # -----------------------------------------------------
+
+    @field_validator("red_flags")
+    @classmethod
+    def validate_red_flags(cls, value):
+
+        cleaned = [
+            str(item).strip().lower()
+            for item in value
+            if str(item).strip()
+        ]
+
+        return list(dict.fromkeys(cleaned))
+
+    # -----------------------------------------------------
+    # VALIDATE DURATION
+    # -----------------------------------------------------
 
     @field_validator("duration")
     @classmethod
@@ -214,6 +217,7 @@ class PatientAssessment(BaseModel):
 
 
 # =========================================================
+<<<<<<< ours
 # TRIAGE REQUEST MODEL
 # =========================================================
 
@@ -260,400 +264,38 @@ class HospitalReferralRequest(BaseModel):
 
 # =========================================================
 # TRIAGE RESPONSE HELPERS
+=======
+# HELPER FUNCTIONS
+>>>>>>> theirs
 # =========================================================
 
-def crisis_response(
-    question_id: Optional[str],
-    answer: Optional[str],
-    reason: str,
-):
+def clean_list(value):
     """
-    Crisis response.
-
-    IMPORTANT:
-    No score is returned.
-
-    drivers, referrals and roadmap are ALWAYS arrays.
+    Safely convert a value into a clean list.
     """
 
-    drivers = []
+    if not isinstance(value, list):
+        return []
 
-    if question_id is not None:
-        drivers.append(
-            {
-                "question_id": str(question_id),
-                "answer": str(answer) if answer is not None else "",
-            }
-        )
-
-    return {
-        "risk_band": "crisis",
-
-        "headline": (
-            "Your responses indicate that immediate "
-            "support may be needed."
-        ),
-
-        "drivers": drivers,
-
-        "referrals": [],
-
-        "roadmap": [],
-
-        "crisis_support": {
-            "name": "Emergency and crisis support",
-            "numbers": [
-                "Contact your local emergency services.",
-                "If you are in immediate danger, go to the nearest emergency department.",
-                "Reach out to a trusted person who can stay with you.",
-            ],
-        },
-    }
-
-
-def minor_support_response():
-    """
-    Response for users under 18 on the emotional /
-    mental-health pathway.
-
-    Psychological scoring must NOT happen.
-    """
-
-    return {
-        "risk_band": "minor_support",
-
-        "headline": (
-            "Because you are under 18, this mental-health "
-            "screening flow will not calculate a psychological "
-            "score. Please involve a trusted adult or qualified "
-            "health professional for support."
-        ),
-
-        "drivers": [],
-
-        "referrals": [],
-
-        "roadmap": [],
-
-        "crisis_support": {
-            "name": "Support for young people",
-            "numbers": [
-                "Contact a parent, guardian, school counselor, or another trusted adult.",
-                "If you are in immediate danger, contact your local emergency services.",
-                "Go to the nearest emergency department if urgent help is needed.",
-            ],
-        },
-    }
-
-
-# =========================================================
-# TRIAGE ENDPOINT
-# =========================================================
-
-@app.post("/triage")
-def triage(request: TriageRequest):
-
-    answers = request.answers or {}
-    instrument = request.instrument
-
-    print("====================================")
-    print("TRIAGE REQUEST RECEIVED")
-    print("Instrument:", instrument)
-    print("Answers:", answers)
-    print("====================================")
-
-    # -----------------------------------------------------
-    # NORMALIZE INSTRUMENT
-    # -----------------------------------------------------
-
-    if instrument is not None:
-        instrument = str(
-            instrument
-        ).strip().lower()
-
-    # -----------------------------------------------------
-    # BASIC ANSWER INFORMATION
-    #
-    # We intentionally look for age using several common
-    # frontend keys so the endpoint is tolerant of the
-    # existing UI.
-    # -----------------------------------------------------
-
-    age = None
-
-    possible_age_keys = [
-        "age",
-        "patient_age",
-        "user_age",
+    return [
+        str(item).strip()
+        for item in value
+        if str(item).strip()
     ]
 
-    for key in possible_age_keys:
 
-        if key in answers:
+def unique_list(items):
+    """
+    Remove duplicates while preserving order.
+    """
 
-            try:
-                age = int(
-                    answers[key]
-                )
-                break
+    result = []
 
-            except (TypeError, ValueError):
-                pass
+    for item in items:
+        if item not in result:
+            result.append(item)
 
-
-    # =====================================================
-    # MINOR SAFETY GATE
-    # =====================================================
-    #
-    # For an under-18 user on the emotional / mental-health
-    # pathway:
-    #
-    # STOP before psychological screening/scoring.
-    #
-    # No score.
-    # No referrals.
-    # Support contacts only.
-    #
-    # =====================================================
-
-    if (
-        age is not None
-        and age < 18
-        and instrument in {"phq9", "gad7"}
-    ):
-
-        return minor_support_response()
-
-
-    # =====================================================
-    # PSYCHOLOGICAL SCREENING
-    # =====================================================
-
-    if instrument in {"phq9", "gad7"}:
-
-        try:
-
-            screening_result = (
-                run_psychological_screening(
-                    answers=answers,
-                    instrument=instrument,
-                )
-            )
-
-        except ValueError as exc:
-
-            # Keep the API safe and predictable.
-            return {
-                "risk_band": "urgent",
-
-                "headline": (
-                    "The psychological screening could not "
-                    "be completed safely."
-                ),
-
-                "drivers": [],
-
-                "referrals": [],
-
-                "roadmap": [],
-
-                "crisis_support": {
-                    "name": "Clinical support",
-                    "numbers": [
-                        "Please contact a qualified healthcare professional.",
-                    ],
-                },
-            }
-
-        # -------------------------------------------------
-        # CRISIS
-        #
-        # CRITICAL:
-        # psychological.py performs the crisis gate BEFORE
-        # scoring.
-        #
-        # If crisis is detected, the screening service returns
-        # score=None.
-        #
-        # We NEVER expose a score here.
-        # -------------------------------------------------
-
-        if screening_result.get("is_crisis"):
-
-            return crisis_response(
-                question_id=screening_result.get(
-                    "crisis_question_id"
-                ),
-                answer=screening_result.get(
-                    "crisis_answer"
-                ),
-                reason=screening_result.get(
-                    "reason",
-                    "Crisis detected.",
-                ),
-            )
-
-
-        # -------------------------------------------------
-        # SAFE PSYCHOLOGICAL SCREENING
-        # -------------------------------------------------
-
-        severity = screening_result.get(
-            "severity"
-        )
-
-        question_id = screening_result.get(
-            "crisis_question_id"
-        )
-
-        crisis_answer = screening_result.get(
-            "crisis_answer"
-        )
-
-
-        drivers = []
-
-        if question_id is not None:
-
-            drivers.append(
-                {
-                    "question_id": str(
-                        question_id
-                    ),
-                    "answer": (
-                        str(crisis_answer)
-                        if crisis_answer is not None
-                        else ""
-                    ),
-                }
-            )
-
-
-        # -------------------------------------------------
-        # DETERMINE PSYCHOLOGICAL RISK BAND
-        # -------------------------------------------------
-
-        if severity == "severe":
-
-            risk_band = "urgent"
-
-            headline = (
-                "Your screening responses suggest that "
-                "professional mental-health support should "
-                "be arranged promptly."
-            )
-
-        elif severity in {
-            "moderately_severe",
-            "moderate",
-        }:
-
-            risk_band = "soon"
-
-            headline = (
-                "Your responses suggest that speaking with "
-                "a mental-health professional soon may be helpful."
-            )
-
-        elif severity == "mild":
-
-            risk_band = "soon"
-
-            headline = (
-                "Your responses suggest some symptoms that "
-                "may benefit from professional support."
-            )
-
-        else:
-
-            risk_band = "routine"
-
-            headline = (
-                "Your responses do not indicate an immediate "
-                "mental-health crisis. Continue monitoring "
-                "your wellbeing and seek support if symptoms "
-                "persist or worsen."
-            )
-
-
-        # -------------------------------------------------
-        # REFERRAL
-        # -------------------------------------------------
-
-        referrals = [
-            {
-                "specialty": "Mental Health Professional",
-                "rank": 1,
-                "rationale": (
-                    "A mental-health professional can review "
-                    "your symptoms and provide appropriate support."
-                ),
-            }
-        ]
-
-
-        # -------------------------------------------------
-        # ROADMAP
-        # -------------------------------------------------
-
-        roadmap = [
-            {
-                "stage": "Next step",
-                "actions": [
-                    "Discuss your concerns with a qualified healthcare professional.",
-                    "Monitor changes in your symptoms and wellbeing.",
-                ],
-            }
-        ]
-
-
-        # -------------------------------------------------
-        # CRISIS SUPPORT
-        #
-        # For non-crisis screening this is null.
-        # -------------------------------------------------
-
-        return {
-            "risk_band": risk_band,
-
-            "headline": headline,
-
-            "drivers": drivers,
-
-            "referrals": referrals,
-
-            "roadmap": roadmap,
-
-            "crisis_support": None,
-        }
-
-
-    # =====================================================
-    # NO PSYCHOLOGICAL INSTRUMENT
-    # =====================================================
-
-    return {
-        "risk_band": "routine",
-
-        "headline": (
-            "No psychological screening instrument was selected."
-        ),
-
-        "drivers": [],
-
-        "referrals": [],
-
-        "roadmap": [
-            {
-                "stage": "Next step",
-                "actions": [
-                    "Continue with the general FirstDoor health assessment.",
-                ],
-            }
-        ],
-
-        "crisis_support": None,
-    }
+    return result
 
 # =========================================================
 # MEMBER 5 — LABORATORY ANALYSIS
@@ -730,13 +372,11 @@ def root():
 
 
 # =========================================================
-# GENERAL HEALTH ASSESSMENT
+# ASSESSMENT
 # =========================================================
 
 @app.post("/api/assess")
-def assess_patient(
-    patient: PatientAssessment
-):
+def assess_patient(patient: PatientAssessment):
 
     # -----------------------------------------------------
     # NORMALIZE INPUT
@@ -748,10 +388,7 @@ def assess_patient(
         if str(symptom).strip()
     ]
 
-    symptoms = unique_list(
-        symptoms
-    )
-
+    symptoms = unique_list(symptoms)
 
     medical_history = [
         str(item).strip().lower()
@@ -763,24 +400,29 @@ def assess_patient(
         medical_history
     )
 
+    # -----------------------------------------------------
+    # NORMALIZE USER-SELECTED RED FLAGS
+    # -----------------------------------------------------
+
+    selected_red_flags = [
+        str(item).strip().lower()
+        for item in patient.red_flags
+        if str(item).strip()
+    ]
+
+    selected_red_flags = unique_list(
+        selected_red_flags
+    )
 
     severity = max(
         1,
-        min(
-            10,
-            int(patient.severity)
-        )
+        min(10, int(patient.severity))
     )
-
 
     age = max(
         1,
-        min(
-            120,
-            int(patient.age)
-        )
+        min(120, int(patient.age))
     )
-
 
     duration = str(
         patient.duration
@@ -793,33 +435,19 @@ def assess_patient(
 
     risk_score = 0
 
-
     symptom_weights = {
-
         "chest pain": 35,
-
         "difficulty breathing": 30,
-
         "shortness of breath": 30,
-
         "slurred speech": 40,
-
         "sudden weakness": 40,
-
         "seizure": 40,
-
         "palpitations": 20,
-
         "dizziness": 15,
-
         "vomiting": 10,
-
         "severe headache": 25,
-
         "headache": 10,
-
         "stomach pain": 10,
-
         "abdominal pain": 10,
     }
 
@@ -848,18 +476,12 @@ def assess_patient(
     # =====================================================
 
     history_weights = {
-
         "diabetes": 8,
-
         "high blood pressure": 10,
-
         "heart disease": 15,
-
         "asthma": 5,
-
         "previous stroke": 20,
     }
-
 
     for condition in medical_history:
 
@@ -869,15 +491,32 @@ def assess_patient(
         )
 
 
+    # =====================================================
+    # USER-SELECTED RED FLAG SCORE
+    # =====================================================
+
+    # A red flag explicitly selected by the patient is
+    # treated as an urgent warning signal.
+    #
+    # We add 50 points for each selected warning sign,
+    # while the final score is still capped at 100.
+    #
+    # The risk-level logic below additionally makes any
+    # selected red flag HIGH risk.
+
+    if selected_red_flags:
+
+        risk_score += (
+            len(selected_red_flags) * 50
+        )
+
+
     # -----------------------------------------------------
     # LIMIT SCORE
     # -----------------------------------------------------
 
     risk_score = min(
-        max(
-            risk_score,
-            0
-        ),
+        max(risk_score, 0),
         100
     )
 
@@ -887,12 +526,142 @@ def assess_patient(
     # =====================================================
 
     possible_conditions = []
-
     recommended_tests = []
-
     knowledge_red_flags = []
 
     specialty_scores = {}
+
+
+    # =====================================================
+    # RAG RETRIEVAL
+    # =====================================================
+
+    rag_results = []
+
+    try:
+
+        rag_query = " ".join(symptoms)
+
+        rag_results = retrieve(
+            rag_query
+        )
+
+    except Exception as exc:
+
+        print(
+            f"RAG retrieval failed: {exc}"
+        )
+
+        rag_results = []
+
+
+    # -----------------------------------------------------
+    # EXTRACT USEFUL INFORMATION FROM RAG
+    # -----------------------------------------------------
+
+    for result in rag_results:
+
+        if not isinstance(
+            result,
+            dict
+        ):
+            continue
+
+        result_type = result.get(
+            "type"
+        )
+
+        # -------------------------------------------------
+        # DISEASE RESULT
+        # -------------------------------------------------
+
+        if result_type == "disease":
+
+            condition_name = result.get(
+                "name"
+            )
+
+            if condition_name:
+
+                possible_conditions.append(
+                    condition_name
+                )
+
+            result_specialty = result.get(
+                "specialty"
+            )
+
+            if result_specialty:
+
+                specialty_scores[
+                    result_specialty
+                ] = (
+                    specialty_scores.get(
+                        result_specialty,
+                        0
+                    ) + 1
+                )
+
+            tests = clean_list(
+                result.get(
+                    "tests",
+                    []
+                )
+            )
+
+            recommended_tests.extend(
+                tests
+            )
+
+        # -------------------------------------------------
+        # RELATIONSHIP RESULT
+        # -------------------------------------------------
+
+        elif result_type == "relationship":
+
+            relationship = result.get(
+                "relationship"
+            )
+
+            target = result.get(
+                "target"
+            )
+
+            if (
+                relationship == "evaluated_by"
+                and target
+            ):
+
+                recommended_tests.append(
+                    str(target)
+                )
+
+            elif (
+                relationship == "routes_to"
+                and target
+            ):
+
+                specialty_scores[
+                    str(target)
+                ] = (
+                    specialty_scores.get(
+                        str(target),
+                        0
+                    ) + 1
+                )
+
+
+    # -----------------------------------------------------
+    # REMOVE RAG DUPLICATES
+    # -----------------------------------------------------
+
+    possible_conditions = unique_list(
+        possible_conditions
+    )
+
+    recommended_tests = unique_list(
+        recommended_tests
+    )
 
 
     # =====================================================
@@ -903,10 +672,8 @@ def assess_patient(
 
         try:
 
-            information = (
-                get_symptom_information(
-                    symptom
-                )
+            information = get_symptom_information(
+                symptom
             )
 
         except Exception as exc:
@@ -960,10 +727,10 @@ def assess_patient(
 
 
         # -------------------------------------------------
-        # RED FLAGS
+        # KNOWLEDGE BASE RED FLAGS
         # -------------------------------------------------
 
-        red_flags = clean_list(
+        kb_red_flags = clean_list(
             information.get(
                 "red_flags",
                 []
@@ -971,7 +738,7 @@ def assess_patient(
         )
 
         knowledge_red_flags.extend(
-            red_flags
+            kb_red_flags
         )
 
 
@@ -982,7 +749,6 @@ def assess_patient(
         symptom_specialty = information.get(
             "specialty"
         )
-
 
         if symptom_specialty:
 
@@ -1008,10 +774,8 @@ def assess_patient(
 
         try:
 
-            information = (
-                get_history_information(
-                    condition
-                )
+            information = get_history_information(
+                condition
             )
 
         except Exception as exc:
@@ -1032,6 +796,10 @@ def assess_patient(
             information = {}
 
 
+        # -------------------------------------------------
+        # ASSOCIATED CONDITIONS
+        # -------------------------------------------------
+
         associated_conditions = clean_list(
             information.get(
                 "associated_conditions",
@@ -1043,6 +811,10 @@ def assess_patient(
             associated_conditions
         )
 
+
+        # -------------------------------------------------
+        # HISTORY TESTS
+        # -------------------------------------------------
 
         history_tests = clean_list(
             information.get(
@@ -1079,7 +851,6 @@ def assess_patient(
 
     specialty = "General Medicine"
 
-
     if specialty_scores:
 
         def specialty_sort_key(item):
@@ -1095,7 +866,6 @@ def assess_patient(
                 count,
                 priority
             )
-
 
         specialty = max(
             specialty_scores.items(),
@@ -1116,37 +886,41 @@ def assess_patient(
 
 
     # =====================================================
-    # EMERGENCY RED FLAGS
+    # EMERGENCY SYMPTOMS
     # =====================================================
 
     emergency_symptoms = {
-
         "chest pain",
-
         "difficulty breathing",
-
         "shortness of breath",
-
         "slurred speech",
-
         "sudden weakness",
-
         "seizure",
     }
 
 
-    red_flags = [
-
+    symptom_red_flags = [
         symptom
-
         for symptom in symptoms
-
         if symptom in emergency_symptoms
     ]
 
+    symptom_red_flags = unique_list(
+        symptom_red_flags
+    )
+
+
+    # =====================================================
+    # COMBINE RED FLAGS
+    # =====================================================
+
+    # Keep both:
+    # 1. red flags explicitly selected by the user
+    # 2. emergency symptoms detected from symptoms
 
     red_flags = unique_list(
-        red_flags
+        selected_red_flags
+        + symptom_red_flags
     )
 
 
@@ -1154,9 +928,14 @@ def assess_patient(
     # RISK LEVEL
     # =====================================================
 
+    # IMPORTANT:
+    # A user-selected red flag or an emergency symptom
+    # makes this HIGH risk.
+
     if (
-        risk_score >= 70
-        or len(red_flags) >= 2
+        len(selected_red_flags) > 0
+        or risk_score >= 70
+        or len(symptom_red_flags) >= 2
     ):
 
         risk_level = "HIGH"
@@ -1165,7 +944,6 @@ def assess_patient(
             "Urgent medical evaluation recommended."
         )
 
-
     elif risk_score >= 40:
 
         risk_level = "MEDIUM"
@@ -1173,7 +951,6 @@ def assess_patient(
         urgency = (
             "Medical consultation recommended soon."
         )
-
 
     else:
 
@@ -1189,7 +966,6 @@ def assess_patient(
     # =====================================================
 
     ai_explanation = None
-
 
     try:
 
@@ -1218,7 +994,6 @@ def assess_patient(
             )
         )
 
-
     except Exception as exc:
 
         print(
@@ -1226,7 +1001,6 @@ def assess_patient(
         )
 
         print(exc)
-
 
         ai_explanation = (
             "The AI explanation could not be generated. "
@@ -1243,31 +1017,73 @@ def assess_patient(
 
     return {
 
+        # -------------------------------------------------
+        # RISK
+        # -------------------------------------------------
+
         "risk_level": risk_level,
 
         "risk_score": risk_score,
 
         "urgency": urgency,
 
+
+        # -------------------------------------------------
+        # SPECIALIST
+        # -------------------------------------------------
+
         "specialty": specialty,
+
+
+        # -------------------------------------------------
+        # POSSIBLE CONDITIONS
+        # -------------------------------------------------
 
         "possible_conditions": (
             possible_conditions
         ),
 
+
+        # -------------------------------------------------
+        # RECOMMENDED TESTS
+        # -------------------------------------------------
+
         "recommended_tests": (
             recommended_tests
         ),
 
+
+        # -------------------------------------------------
+        # RED FLAGS
+        # -------------------------------------------------
+
         "red_flags": red_flags,
+
+        "selected_red_flags": (
+            selected_red_flags
+        ),
+
+        "symptom_red_flags": (
+            symptom_red_flags
+        ),
 
         "knowledge_base_red_flags": (
             knowledge_red_flags
         ),
 
+
+        # -------------------------------------------------
+        # AI EXPLANATION
+        # -------------------------------------------------
+
         "ai_explanation": (
             ai_explanation
         ),
+
+
+        # -------------------------------------------------
+        # PATIENT SUMMARY
+        # -------------------------------------------------
 
         "patient_summary": {
 
@@ -1280,6 +1096,8 @@ def assess_patient(
             "duration": duration,
 
             "medical_history": medical_history,
+
+            "red_flags": selected_red_flags,
         },
     }
 
@@ -1319,7 +1137,6 @@ def search_knowledge_base(
             information,
             dict
         ):
-
             continue
 
 
@@ -1330,7 +1147,6 @@ def search_knowledge_base(
             )
         )
 
-
         tests = clean_list(
             information.get(
                 "tests",
@@ -1338,14 +1154,12 @@ def search_knowledge_base(
             )
         )
 
-
         red_flags = clean_list(
             information.get(
                 "red_flags",
                 []
             )
         )
-
 
         specialty = information.get(
             "specialty",
@@ -1360,7 +1174,6 @@ def search_knowledge_base(
             + red_flags
             + [str(specialty or "")]
         )
-
 
         searchable_text = " ".join(
             searchable_parts
@@ -1398,7 +1211,6 @@ def search_knowledge_base(
             information,
             dict
         ):
-
             continue
 
 
@@ -1409,7 +1221,6 @@ def search_knowledge_base(
             )
         )
 
-
         history_tests = clean_list(
             information.get(
                 "recommended_tests",
@@ -1419,11 +1230,9 @@ def search_knowledge_base(
 
 
         searchable_text = " ".join(
-
             [condition]
             + associated_conditions
             + history_tests
-
         ).lower()
 
 
