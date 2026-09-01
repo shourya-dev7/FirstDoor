@@ -21,6 +21,7 @@ from .services.psychological import (
 from .services.labs import analyze_labs
 from .services.imaging import analyze_imaging
 from .services.hospitals import get_hospital_referral
+from .services.decision_engine import run_decision_engine
 
 # =========================================================
 # PATHS / DATASET
@@ -628,32 +629,13 @@ def triage(request: TriageRequest):
         }
 
 
-    # =====================================================
-    # NO PSYCHOLOGICAL INSTRUMENT
-    # =====================================================
-
-    return {
-        "risk_band": "routine",
-
-        "headline": (
-            "No psychological screening instrument was selected."
-        ),
-
-        "drivers": [],
-
-        "referrals": [],
-
-        "roadmap": [
-            {
-                "stage": "Next step",
-                "actions": [
-                    "Continue with the general FirstDoor health assessment.",
-                ],
-            }
-        ],
-
-        "crisis_support": None,
-    }
+# =====================================================
+# GENERAL TRIAGE / MEMBER 3 DECISION ENGINE
+# =====================================================
+    return run_decision_engine(
+        answers=answers,
+        instrument=instrument,
+    )
 
 # =========================================================
 # MEMBER 5 — LABORATORY ANALYSIS
