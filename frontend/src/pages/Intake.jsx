@@ -6,7 +6,9 @@ import {
   NONE_OF_THESE,
   RED_FLAGS,
   SEVERITY_OPTIONS,
+  computeTriage,
 } from "../lib/placeholderTriage";
+import { fetchBackendTriage } from "../lib/backendTriage";
 import {
   INSTRUMENTS,
   INSTRUMENT_ROUTING_OPTIONS,
@@ -132,54 +134,40 @@ export default function Intake() {
        */
 
       if (isPhysical) {
-        const selectedAge = AGE_OPTIONS.find(
-          (o) => o.id === ageBand
-        );
+        // Computed first and unconditionally. Whatever happens to the network
+        // call below, there is already a complete, renderable result in hand,
+        // so no failure path can leave the person without one.
+        const localResult = computeTriage({
+          symptom,
+          duration,
+          severity,
+          ageBand,
+          redFlags,
+        });
 
-        const ageLabel = selectedAge?.label ?? "";
+        let result = localResult;
 
-        // Use the first number from the selected age band.
-        const ageMatch = ageLabel.match(/\d+/);
-        const age = ageMatch ? Number(ageMatch[0]) : 30;
+        try {
+          const remote = await fetchBackendTriage({
+            symptom,
+            duration,
+            severity,
+            ageBand,
+            redFlags,
+          });
 
-        const severityNumber = Number(severity);
-
-        if (Number.isNaN(severityNumber)) {
-          throw new Error("Invalid severity value.");
-        }
-
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/assess",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              age,
-              symptoms: [symptom.trim()],
-              severity: severityNumber,
-              duration,
-
-              // No medical history is currently collected
-              // by this version of the intake form.
-              medical_history: [],
-
-              // Send the warning signs selected by the user.
-              red_flags: redFlags,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          const errorText = await response.text();
-
-          throw new Error(
-            `Backend returned ${response.status}: ${errorText}`
+          // null means unreachable, an error status, unparseable JSON, or a
+          // body the result screen cannot render. All of them fall back.
+          if (remote) result = remote;
+        } catch (error) {
+          // Deliberately not surfaced to the user. On the deployed URL the
+          // backend is absent by design, so this is the normal path, not a
+          // fault worth interrupting someone mid-intake to report.
+          console.warn(
+            "FirstDoor: backend unavailable, using local triage.",
+            error
           );
         }
-
-        const result = await response.json();
 
         navigate("/result", {
           state: {
@@ -226,12 +214,9 @@ export default function Intake() {
         return;
       }
     } catch (error) {
+      // The physical path handles its own failures above and the emotional
+      // path is pure local computation, so nothing routine lands here.
       console.error("FirstDoor assessment error:", error);
-
-      alert(
-        "Unable to complete FirstDoor's assessment. " +
-          "Please make sure the backend is running and try again."
-      );
     } finally {
       setSubmitting(false);
     }
