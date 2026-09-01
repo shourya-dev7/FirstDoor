@@ -26,7 +26,7 @@ const TRACK_OPTIONS = [
 
 export default function Intake() {
   const navigate = useNavigate();
-
+  const [submitting, setSubmitting] = useState(false);
   // Which branch of the flow to run. The free-text field is never inspected to
   // decide this — keyword matching on a symptom description is fragile and
   // would route people wrongly. Only this answer decides.
@@ -103,22 +103,69 @@ export default function Intake() {
   const remaining = answered.filter((a) => !a).length;
   const ready = track !== "" && remaining === 0;
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    if (!ready) return;
+ 
+  async function handleSubmit(event) {
+  event.preventDefault();
 
-    const result = isPhysical
-      ? computeTriage({ symptom, duration, severity, ageBand, redFlags })
-      : scoreScreening({
-          instrument,
-          responses,
-          symptom,
-          ageBand,
-          ageBandLabel: AGE_OPTIONS.find((o) => o.id === ageBand)?.label ?? "",
-        });
+  if (!ready || submitting) return;
 
-    navigate("/result", { state: { result } });
+  setSubmitting(true);
+
+  try {
+    // Convert the age band from the UI into a usable age.
+    const selectedAge = AGE_OPTIONS.find((o) => o.id === ageBand);
+
+    const ageLabel = selectedAge?.label ?? "";
+
+    // For now, use the middle of the selected age band.
+    const ageMatch = ageLabel.match(/\d+/);
+    const age = ageMatch ? Number(ageMatch[0]) : 30;
+
+    // Convert the severity option into a number.
+    const severityNumber = Number(severity);
+
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/assess",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          age,
+          symptoms: [symptom.trim()],
+          severity: severityNumber,
+          duration,
+          medical_history: [],
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Backend returned ${response.status}`
+      );
+    }
+
+    const result = await response.json();
+
+    navigate("/result", {
+      state: {
+        result,
+      },
+    });
+
+  } catch (error) {
+    console.error("FirstDoor backend error:", error);
+
+    alert(
+      "Unable to connect to FirstDoor's assessment service. Please make sure the backend is running."
+    );
+
+  } finally {
+    setSubmitting(false);
   }
+}
 
   function choice(name, options, value, setValue) {
     return (
@@ -473,7 +520,7 @@ export default function Intake() {
                 disabled={!ready}
                 aria-describedby="in-hint"
               >
-                See my result
+                {submitting ? "Assessing…" : "See my result"}
               </button>
               <p className="in-hint" id="in-hint">
                 {track === ""
