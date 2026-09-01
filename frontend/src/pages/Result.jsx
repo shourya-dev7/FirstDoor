@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { CRISIS_SUPPORT } from "../lib/screeningInstruments";
 
 const SAMPLE = {
   risk_band: "urgent",
@@ -48,6 +49,45 @@ const BAND = {
 // "unscored", "crisis" and "minor_support" are not in here: none is an
 // outcome of the two-step flow, so none gets the step counter in the header.
 const SCORED_BANDS = ["emergency", "urgent", "soon", "routine"];
+
+// The crisis and minor-support screens exist to put a phone number in front of
+// someone who needs one, so this normaliser is deliberately forgiving. The
+// backend contract documents crisis_support as a single object with a `note`
+// field; this frontend has always produced an array of services with `detail`.
+// Rather than bet on which one arrives, accept both — and anything close to
+// either — because the one outcome that must never happen is a crisis screen
+// with no way to reach help on it.
+//
+// Falls back to the verified local contacts if nothing usable survives. A
+// screen with a stale-but-working helpline beats a blank one.
+function normalizeSupport(raw) {
+  const list = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? [raw] : [];
+
+  const services = list
+    .filter((entry) => entry && typeof entry === "object")
+    .map((entry) => {
+      const rawNumbers = Array.isArray(entry.numbers)
+        ? entry.numbers
+        : entry.numbers === undefined || entry.numbers === null
+          ? []
+          : [entry.numbers];
+
+      return {
+        name: typeof entry.name === "string" && entry.name.trim() !== ""
+          ? entry.name
+          : "Helpline",
+        // `detail` is this frontend's field, `note` is the backend contract's.
+        detail: entry.detail ?? entry.note ?? "",
+        numbers: rawNumbers
+          .map((n) => String(n ?? "").trim())
+          .filter((n) => n !== "" && /[0-9]/.test(n)),
+      };
+    })
+    // A service with no dialable number is not worth a card of its own.
+    .filter((service) => service.numbers.length > 0);
+
+  return services.length > 0 ? services : CRISIS_SUPPORT;
+}
 
 export default function Result() {
   const location = useLocation();
@@ -194,13 +234,17 @@ export default function Result() {
                   : "You do not have to work out what to do next on your own. These lines are answered by trained people, at any hour, and the call is free."}
               </p>
 
-              {(data.crisis_support ?? []).map((service) => (
-                <div className="rs-help" key={service.name}>
+              {normalizeSupport(data.crisis_support).map((service, n) => (
+                <div className="rs-help" key={`${service.name}-${n}`}>
                   <p className="rs-help-name">{service.name}</p>
-                  <p className="rs-help-detail">{service.detail}</p>
+                  {service.detail && <p className="rs-help-detail">{service.detail}</p>}
                   <div className="rs-tels">
                     {service.numbers.map((number) => (
-                      <a className="rs-tel" href={`tel:${number.replace(/[^0-9+]/g, "")}`} key={number}>
+                      <a
+                        className="rs-tel"
+                        href={`tel:${String(number).replace(/[^0-9+]/g, "")}`}
+                        key={number}
+                      >
                         {number}
                       </a>
                     ))}
