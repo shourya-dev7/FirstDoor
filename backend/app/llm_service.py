@@ -93,7 +93,11 @@ Recommended tests from the knowledge base:
 {recommended_tests}
 
 Write a short, clear explanation for the user.
-
+IMPORTANT:
+- Use the patient's duration exactly as provided above.
+- Do not change, reinterpret, shorten, or invent the symptom duration.
+- If the duration is "2 days", describe it as "2 days", not "under 24 hours".
+- Do not make assumptions about information that was not provided.
 Explain:
 1. What the reported symptoms may indicate in general.
 2. Why the prototype assigned this risk level.
